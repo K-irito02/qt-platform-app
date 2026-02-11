@@ -66,3 +66,4 @@ qt-platform/
 | 角色 | 用户名 | 密码 |
 |------|--------|------|
 | 超级管理员 | admin | Admin@123456 |
+# qt-platform-app
