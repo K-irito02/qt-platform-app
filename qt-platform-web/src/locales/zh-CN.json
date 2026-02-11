@@ -1,0 +1,49 @@
+{
+  "common": {
+    "home": "首页",
+    "products": "产品",
+    "login": "登录",
+    "register": "注册",
+    "logout": "退出登录",
+    "search": "搜索",
+    "submit": "提交",
+    "cancel": "取消",
+    "confirm": "确认",
+    "delete": "删除",
+    "edit": "编辑",
+    "save": "保存",
+    "loading": "加载中...",
+    "noData": "暂无数据",
+    "backToHome": "返回首页"
+  },
+  "auth": {
+    "loginTitle": "登录",
+    "registerTitle": "注册",
+    "username": "用户名",
+    "email": "邮箱",
+    "password": "密码",
+    "confirmPassword": "确认密码",
+    "forgotPassword": "忘记密码？",
+    "loginWithGithub": "使用 GitHub 登录",
+    "verificationCode": "验证码",
+    "sendCode": "发送验证码"
+  },
+  "product": {
+    "allProducts": "全部产品",
+    "latestVersion": "最新版本",
+    "download": "下载",
+    "downloads": "下载量",
+    "rating": "评分",
+    "comments": "评论",
+    "releaseNotes": "更新日志",
+    "platforms": "支持平台",
+    "developer": "开发者",
+    "publishedAt": "发布时间"
+  },
+  "footer": {
+    "copyright": "© 2026 Qt 产品发布平台",
+    "about": "关于我们",
+    "terms": "服务条款",
+    "privacy": "隐私政策"
+  }
+}

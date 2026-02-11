@@ -1,0 +1,39 @@
+# docker-compose.dev.yml — 仅启动依赖服务，应用在 IDE 中运行
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: qt-dev-postgres
+    environment:
+      POSTGRES_DB: qt_platform
+      POSTGRES_USER: qt_user
+      POSTGRES_PASSWORD: qt_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qt_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: qt-dev-redis
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_dev_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  postgres_dev_data:
+  redis_dev_data:
