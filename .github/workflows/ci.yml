@@ -1,0 +1,126 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  JAVA_VERSION: '17'
+  NODE_VERSION: '22'
+
+jobs:
+  # ===== Backend Build & Test =====
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: qt_platform_test
+          POSTGRES_USER: qt_user
+          POSTGRES_PASSWORD: test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U qt_user"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: temurin
+          cache: maven
+
+      - name: Build with Maven
+        run: mvn clean package -B
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/qt_platform_test
+          SPRING_DATASOURCE_USERNAME: qt_user
+          SPRING_DATASOURCE_PASSWORD: test_password
+          SPRING_REDIS_HOST: localhost
+          JWT_SECRET: ci-test-secret-key-must-be-at-least-64-characters-long-for-hmac-sha256
+
+      - name: Upload backend artifact
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jar
+          path: qt-platform-app/target/*.jar
+          retention-days: 7
+
+  # ===== Frontend Build & Test =====
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: qt-platform-web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: qt-platform-web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+        continue-on-error: true
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload frontend artifact
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: qt-platform-web/dist
+          retention-days: 7
+
+  # ===== Docker Build (main branch only) =====
+  docker:
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build backend Docker image
+        run: |
+          docker build -f qt-platform-app/Dockerfile -t qt-platform-backend:${{ github.sha }} .
+          docker tag qt-platform-backend:${{ github.sha }} qt-platform-backend:latest
+
+      - name: Build frontend Docker image
+        run: |
+          docker build -f qt-platform-web/Dockerfile -t qt-platform-frontend:${{ github.sha }} qt-platform-web/
+          docker tag qt-platform-frontend:${{ github.sha }} qt-platform-frontend:latest
+
+      - name: Docker images summary
+        run: |
+          echo "Backend image: qt-platform-backend:${{ github.sha }}"
+          echo "Frontend image: qt-platform-frontend:${{ github.sha }}"
+          docker images | grep qt-platform

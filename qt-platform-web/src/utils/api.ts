@@ -1,0 +1,149 @@
+import request from './request';
+
+// ===== Auth API =====
+export const authApi = {
+  login: (data: { email: string; password: string }) =>
+    request.post('/auth/login', data),
+  register: (data: { username: string; email: string; password: string; verificationCode: string; nickname?: string }) =>
+    request.post('/auth/register', data),
+  logout: () => request.post('/auth/logout'),
+  refresh: (refreshToken: string) =>
+    request.post('/auth/refresh', { refreshToken }),
+  sendCode: (data: { email: string; type: string }) =>
+    request.post('/auth/send-code', data),
+  resetPassword: (data: { email: string; code: string; newPassword: string }) =>
+    request.post('/auth/reset-password', data),
+  changePassword: (data: { oldPassword: string; newPassword: string }) =>
+    request.put('/auth/change-password', data),
+  getGithubUrl: () => request.get('/auth/oauth/github'),
+  githubCallback: (code: string) =>
+    request.get(`/auth/oauth/github/callback?code=${code}`),
+};
+
+// ===== User API =====
+export const userApi = {
+  getProfile: () => request.get('/users/profile'),
+  updateProfile: (data: { nickname?: string; bio?: string; avatarUrl?: string }) =>
+    request.put('/users/profile', data),
+  updateLanguage: (language: string) =>
+    request.put('/users/language', { language }),
+  getPublicProfile: (id: number) => request.get(`/users/${id}/public`),
+  getTheme: () => request.get('/users/me/theme'),
+  updateTheme: (themeConfig: string) =>
+    request.put('/users/me/theme', { themeConfig }),
+};
+
+// ===== Product API =====
+export const productApi = {
+  list: (params: { page?: number; size?: number; categoryId?: number; sort?: string; keyword?: string }) =>
+    request.get('/products', { params }),
+  getFeatured: () => request.get('/products/featured'),
+  search: (params: { q: string; page?: number; size?: number }) =>
+    request.get('/products/search', { params }),
+  getBySlug: (slug: string) => request.get(`/products/${slug}`),
+  getVersions: (id: number) => request.get(`/products/${id}/versions`),
+  getLatestVersion: (id: number) => request.get(`/products/${id}/versions/latest`),
+};
+
+// ===== Category API =====
+export const categoryApi = {
+  getAll: () => request.get('/categories'),
+  getById: (id: number) => request.get(`/categories/${id}`),
+};
+
+// ===== Comment API =====
+export const commentApi = {
+  getProductComments: (productId: number, params: { page?: number; size?: number }) =>
+    request.get(`/comments/product/${productId}`, { params }),
+  create: (productId: number, data: { content: string; parentId?: number; rating?: number }) =>
+    request.post(`/comments/product/${productId}`, data),
+  update: (id: number, content: string) =>
+    request.put(`/comments/${id}`, { content }),
+  delete: (id: number) => request.delete(`/comments/${id}`),
+  like: (id: number) => request.post(`/comments/${id}/like`),
+  unlike: (id: number) => request.delete(`/comments/${id}/like`),
+};
+
+// ===== Notification API =====
+export const notificationApi = {
+  list: (params: { page?: number; size?: number; isRead?: boolean }) =>
+    request.get('/notifications', { params }),
+  getUnreadCount: () => request.get('/notifications/unread-count'),
+  markAsRead: (id: number) => request.put(`/notifications/${id}/read`),
+  markAllRead: () => request.put('/notifications/read-all'),
+};
+
+// ===== File API =====
+export const fileApi = {
+  upload: (file: File, type = 'general') => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', type);
+    return request.post('/files/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+  uploadImage: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return request.post('/files/upload/image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+};
+
+// ===== Update Check API =====
+export const updateApi = {
+  check: (params: { product: number; version: string; platform: string; arch?: string }) =>
+    request.get('/updates/check', { params }),
+};
+
+// ===== Admin API =====
+export const adminApi = {
+  getDashboardStats: () => request.get('/admin/dashboard/stats'),
+  // Users
+  listUsers: (params: { page?: number; size?: number; keyword?: string; status?: string }) =>
+    request.get('/admin/users', { params }),
+  getUser: (id: number) => request.get(`/admin/users/${id}`),
+  updateUserStatus: (id: number, status: string) =>
+    request.put(`/admin/users/${id}/status`, { status }),
+  // Products
+  listProducts: (params: { page?: number; size?: number; categoryId?: number; status?: string; keyword?: string }) =>
+    request.get('/admin/products', { params }),
+  getProduct: (id: number) => request.get(`/admin/products/${id}`),
+  createProduct: (data: Record<string, unknown>) =>
+    request.post('/admin/products', data),
+  updateProduct: (id: number, data: Record<string, unknown>) =>
+    request.put(`/admin/products/${id}`, data),
+  deleteProduct: (id: number) => request.delete(`/admin/products/${id}`),
+  auditProduct: (id: number, status: string) =>
+    request.put(`/admin/products/${id}/audit`, { status }),
+  createVersion: (productId: number, data: Record<string, unknown>) =>
+    request.post(`/admin/products/${productId}/versions`, data),
+  publishVersion: (versionId: number) =>
+    request.put(`/admin/products/versions/${versionId}/publish`),
+  // Comments
+  listComments: (params: { page?: number; size?: number; status?: string; productId?: number }) =>
+    request.get('/admin/comments', { params }),
+  auditComment: (id: number, status: string) =>
+    request.put(`/admin/comments/${id}/audit`, { status }),
+  deleteComment: (id: number) => request.delete(`/admin/comments/${id}`),
+  // Categories
+  createCategory: (data: Record<string, unknown>) =>
+    request.post('/admin/products/categories', data),
+  updateCategory: (id: number, data: Record<string, unknown>) =>
+    request.put(`/admin/products/categories/${id}`, data),
+  deleteCategory: (id: number) =>
+    request.delete(`/admin/products/categories/${id}`),
+  // System
+  getSystemConfigs: () => request.get('/admin/system/configs'),
+  updateSystemConfig: (key: string, value: string) =>
+    request.put(`/admin/system/configs/${key}`, { value }),
+  // Audit logs
+  getAuditLogs: (params: { page?: number; size?: number; userId?: number; action?: string }) =>
+    request.get('/admin/audit-logs', { params }),
+  // Theme
+  getGlobalTheme: () => request.get('/admin/system/theme'),
+  updateGlobalTheme: (themeConfig: string) =>
+    request.put('/admin/system/theme', { themeConfig }),
+};

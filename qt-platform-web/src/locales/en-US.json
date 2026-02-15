@@ -14,22 +14,60 @@
     "save": "Save",
     "loading": "Loading...",
     "noData": "No data",
-    "backToHome": "Back to Home"
+    "backToHome": "Back to Home",
+    "siteName": "Qt Platform",
+    "profile": "Profile",
+    "admin": "Admin"
+  },
+  "home": {
+    "title": "Qt Product Platform",
+    "subtitle": "One-stop Qt software product publishing & distribution",
+    "subtitleLine2": "Multi-platform, multi-version management with auto-updates",
+    "browseProducts": "Browse Products",
+    "developerJoin": "Developer Join",
+    "features": "Features",
+    "featuresDesc": "Professional software distribution services for Qt developers",
+    "featuredProducts": "Featured",
+    "featuredDesc": "Carefully selected quality Qt applications",
+    "viewAll": "View All Products",
+    "featureProducts": "Rich Products",
+    "featureProductsDesc": "Browse and discover Qt apps for Windows, macOS, and Linux",
+    "featureSecurity": "Secure Verification",
+    "featureSecurityDesc": "All packages verified with SHA-256 checksums for integrity and security",
+    "featureUpdate": "Smart Updates",
+    "featureUpdateDesc": "Incremental updates and staged rollouts keep your software up to date",
+    "featureDev": "Developer Friendly",
+    "featureDevDesc": "Complete RESTful API for easy integration into Qt client update workflows"
   },
   "auth": {
-    "loginTitle": "Login",
-    "registerTitle": "Register",
+    "loginTitle": "Welcome Back",
+    "loginSubtitle": "Sign in to continue using the platform",
+    "registerTitle": "Create Account",
+    "registerSubtitle": "Join the platform, explore more possibilities",
     "username": "Username",
     "email": "Email",
+    "emailRequired": "Please enter a valid email",
     "password": "Password",
+    "passwordRequired": "Please enter your password",
     "confirmPassword": "Confirm Password",
     "forgotPassword": "Forgot password?",
     "loginWithGithub": "Login with GitHub",
+    "orLoginWith": "or sign in with",
+    "noAccount": "Don't have an account?",
+    "registerNow": "Register Now",
+    "hasAccount": "Already have an account?",
+    "loginNow": "Login Now",
     "verificationCode": "Verification Code",
     "sendCode": "Send Code"
   },
   "product": {
     "allProducts": "All Products",
+    "allCategories": "All Categories",
+    "browseDesc": "Browse and discover quality Qt applications",
+    "sortLatest": "Latest",
+    "sortDownloads": "Most Downloads",
+    "sortRating": "Highest Rated",
+    "sortName": "Name",
     "latestVersion": "Latest Version",
     "download": "Download",
     "downloads": "Downloads",
@@ -41,9 +79,6 @@
     "publishedAt": "Published At"
   },
   "footer": {
-    "copyright": "© 2026 Qt Product Platform",
-    "about": "About",
-    "terms": "Terms of Service",
-    "privacy": "Privacy Policy"
+    "copyright": "© 2026 Qt Product Platform"
   }
 }

@@ -1,5 +1,6 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { message } from 'antd';
+import { setupMock } from './mock';
 
 const request = axios.create({
   baseURL: '/api/v1',
@@ -8,6 +9,12 @@ const request = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// 开发环境启用 Mock 数据（后端未启动时自动使用模拟数据）
+// 设置 VITE_ENABLE_MOCK=false 可禁用 Mock，使用真实后端
+if (import.meta.env.DEV && import.meta.env.VITE_ENABLE_MOCK !== 'false') {
+  setupMock(request);
+}
 
 // 请求拦截器
 request.interceptors.request.use(

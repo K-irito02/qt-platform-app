@@ -1,68 +1,368 @@
+/* ============================================================
+   Qt 产品发布平台 — 中式水墨风格主题 (Shuimo Design System)
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600&display=swap');
+
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  /* ===== 水墨色阶 ===== */
+  --ink-darkest: #1a1a2e;
+  --ink-dark:    #2c3e50;
+  --ink-medium:  #4a5568;
+  --ink-light:   #718096;
+  --ink-lighter: #a0aec0;
+  --ink-lightest:#e2e8f0;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  /* ===== 宣纸底色 ===== */
+  --paper-white: #faf9f7;
+  --paper-warm:  #f5f1eb;
+  --paper-cream: #ede8df;
 
+  /* ===== 朱砂红 ===== */
+  --cinnabar:       #c0392b;
+  --cinnabar-light: #e74c3c;
+  --cinnabar-dark:  #96281b;
+
+  /* ===== 青绿 ===== */
+  --celadon:       #1a8a6a;
+  --celadon-light: #2ecc71;
+  --celadon-dark:  #145a49;
+
+  /* ===== 藤黄 ===== */
+  --gamboge: #d4a017;
+
+  /* ===== 靛蓝 ===== */
+  --indigo:       #2f4f6f;
+  --indigo-light: #3d6a8f;
+
+  /* ===== 语义色 ===== */
+  --color-success: #1a8a6a;
+  --color-warning: #d4a017;
+  --color-danger:  #c0392b;
+  --color-info:    #2f4f6f;
+
+  /* ===== 字体 ===== */
+  --font-serif: 'Noto Serif SC', 'Source Han Serif CN', 'SimSun', serif;
+  --font-sans:  'Noto Sans SC', 'Source Han Sans CN', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono:  'JetBrains Mono', 'Fira Code', monospace;
+
+  /* ===== 圆角 ===== */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* ===== 阴影（水墨扩散感） ===== */
+  --shadow-sm: 0 1px 3px rgba(26, 26, 46, 0.06);
+  --shadow-md: 0 4px 16px rgba(26, 26, 46, 0.08);
+  --shadow-lg: 0 8px 32px rgba(26, 26, 46, 0.12);
+  --shadow-ink: 0 2px 20px rgba(26, 26, 46, 0.15);
+
+  /* ===== 过渡 ===== */
+  --transition-fast:   0.15s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow:   0.6s ease;
+
+  font-family: var(--font-serif);
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+  color: var(--ink-dark);
+  background-color: var(--paper-white);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
+  min-height: 100vh;
+  background-color: var(--paper-white);
+  /* 宣纸纹理背景 */
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+}
+
+#root {
   min-height: 100vh;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+/* ===== 全局排版 ===== */
+h1, h2, h3, h4, h5 {
+  font-family: var(--font-serif);
+  color: var(--ink-darkest);
+  font-weight: 600;
+  line-height: 1.35;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
+h1 { letter-spacing: 0.04em; }
+h2 { letter-spacing: 0.03em; }
+
+a {
+  color: var(--indigo);
+  text-decoration: none;
+  transition: color var(--transition-fast);
 }
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+a:hover {
+  color: var(--cinnabar);
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+/* Focus 可访问性 */
+*:focus-visible {
+  outline: 2px solid var(--cinnabar);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: rgba(192, 57, 43, 0.15);
+  color: var(--ink-darkest);
+}
+
+/* ===== Ant Design 全局覆盖 ===== */
+.ant-layout {
+  background: var(--paper-white) !important;
+}
+
+.ant-layout-footer {
+  background: var(--paper-warm) !important;
+  border-top: 1px solid var(--ink-lightest);
+}
+
+.ant-card {
+  border: 1px solid var(--ink-lightest) !important;
+  border-radius: var(--radius-md) !important;
+  background: var(--paper-white) !important;
+  transition: all var(--transition-normal) !important;
+}
+.ant-card:hover {
+  box-shadow: var(--shadow-md) !important;
+  border-color: var(--ink-lighter) !important;
+  transform: translateY(-2px);
+}
+
+/* ===== 水墨装饰元素 ===== */
+
+/* 水墨分割线 */
+.ink-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--ink-lightest) 15%,
+    var(--ink-lighter) 50%,
+    var(--ink-lightest) 85%,
+    transparent 100%
+  );
+  margin: 40px 0;
+  position: relative;
+}
+.ink-divider::after {
+  content: '◆';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--paper-white);
+  padding: 0 12px;
+  color: var(--ink-lighter);
+  font-size: 10px;
+}
+
+/* 水墨背景纹理 */
+.ink-bg-pattern {
+  position: relative;
+  background-image:
+    radial-gradient(ellipse at 15% 30%, rgba(26,26,46,0.025) 0%, transparent 60%),
+    radial-gradient(ellipse at 85% 15%, rgba(192,57,43,0.015) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(26,138,106,0.01) 0%, transparent 40%);
+}
+
+/* 朱砂印章装饰 */
+.ink-seal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 2px solid var(--cinnabar);
+  border-radius: 4px;
+  color: var(--cinnabar);
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 16px;
+  transform: rotate(-5deg);
+  opacity: 0.8;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.ink-seal[aria-hidden="true"] { pointer-events: none; }
+
+/* 毛笔横线装饰 */
+.brush-underline {
+  position: relative;
+  display: inline-block;
+}
+.brush-underline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--cinnabar) 0%,
+    var(--cinnabar) 60%,
+    transparent 100%
+  );
+  border-radius: 2px;
+  opacity: 0.7;
+}
+
+/* 宣纸质感卡片 */
+.paper-card {
+  background: var(--paper-white);
+  border: 1px solid var(--ink-lightest);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  position: relative;
+  overflow: hidden;
+}
+.paper-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 80px;
+  height: 80px;
+  background: radial-gradient(circle at 100% 0%, rgba(192, 57, 43, 0.04) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* 水墨渐入区块 */
+.ink-section {
+  padding: 64px 0;
+  position: relative;
+}
+.ink-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1px;
+  height: 48px;
+  background: linear-gradient(to bottom, transparent, var(--ink-lighter));
+}
+
+/* 章节标题样式 */
+.section-title {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--ink-darkest);
+  text-align: center;
+  margin-bottom: 12px;
+  letter-spacing: 0.06em;
+}
+.section-subtitle {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--ink-light);
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+/* ===== 动画 ===== */
+
+/* 水墨晕染入场 */
+@keyframes inkSpread {
+  0%   { opacity: 0; filter: blur(12px); transform: scale(0.95); }
+  60%  { opacity: 0.7; filter: blur(4px); }
+  100% { opacity: 1; filter: blur(0); transform: scale(1); }
+}
+
+/* 渐入上浮 */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* 渐入 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* 墨滴扩散 */
+@keyframes inkDrop {
+  0%   { transform: scale(0); opacity: 0.3; }
+  100% { transform: scale(3); opacity: 0; }
+}
+
+/* 毛笔横划 */
+@keyframes brushStroke {
+  from { width: 0; }
+  to   { width: 100%; }
+}
+
+/* 山水渐现 */
+@keyframes fadeRise {
+  0%   { opacity: 0; transform: translateY(30px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.animate-ink-spread {
+  animation: inkSpread 0.8s ease-out forwards;
+}
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease forwards;
+}
+.animate-fade-in {
+  animation: fadeIn 0.5s ease forwards;
+}
+.animate-fade-rise {
+  animation: fadeRise 0.7s ease-out forwards;
+}
+
+/* 交错动画延迟 */
+.stagger-1 { animation-delay: 0.1s; opacity: 0; }
+.stagger-2 { animation-delay: 0.2s; opacity: 0; }
+.stagger-3 { animation-delay: 0.3s; opacity: 0; }
+.stagger-4 { animation-delay: 0.4s; opacity: 0; }
+.stagger-5 { animation-delay: 0.5s; opacity: 0; }
+.stagger-6 { animation-delay: 0.6s; opacity: 0; }
+
+/* ===== 滚动条美化 ===== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--paper-warm);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--ink-lighter);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-light);
+}
+
+/* ===== 响应式 ===== */
+@media (max-width: 768px) {
+  .hide-mobile { display: none !important; }
+  .ink-section { padding: 40px 0; }
+  .ink-section::before { height: 32px; }
+  .section-title { font-size: 22px; }
+  .animate-ink-spread { animation: fadeIn 0.4s ease forwards; }
+}
+@media (min-width: 769px) {
+  .hide-desktop { display: none !important; }
 }

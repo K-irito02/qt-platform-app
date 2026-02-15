@@ -1,21 +1,35 @@
+import { useEffect } from 'react'
 import { RouterProvider } from 'react-router-dom'
 import { ConfigProvider } from 'antd'
 import zhCN from 'antd/locale/zh_CN'
 import router from '@/router'
+import theme from '@/theme/antdTheme'
+import { useAppSelector, useAppDispatch } from '@/store/hooks'
+import { setUser, logout } from '@/store/slices/authSlice'
+import { userApi } from '@/utils/api'
+import { ThemeProvider } from '@/components/ThemeProvider'
+import { DynamicBackground } from '@/components/DynamicBackground'
 
 function App() {
+  const dispatch = useAppDispatch()
+  const { isAuthenticated, user } = useAppSelector((s) => s.auth)
+
+  useEffect(() => {
+    if (isAuthenticated && !user) {
+      userApi.getProfile()
+        .then((res: any) => {
+          if (res.data) dispatch(setUser(res.data))
+        })
+        .catch(() => dispatch(logout()))
+    }
+  }, [isAuthenticated, user, dispatch])
+
   return (
-    <ConfigProvider
-      locale={zhCN}
-      theme={{
-        token: {
-          colorPrimary: '#2c3e50',
-          borderRadius: 6,
-          fontFamily: "'Noto Serif SC', 'Source Han Serif CN', serif",
-        },
-      }}
-    >
-      <RouterProvider router={router} />
+    <ConfigProvider locale={zhCN} theme={theme}>
+      <ThemeProvider>
+        <DynamicBackground />
+        <RouterProvider router={router} />
+      </ThemeProvider>
     </ConfigProvider>
   )
 }

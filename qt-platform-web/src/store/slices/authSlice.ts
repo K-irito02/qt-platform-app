@@ -7,6 +7,7 @@ interface UserInfo {
   email: string;
   avatarUrl: string | null;
   roles: string[];
+  themeConfig?: string;
 }
 
 interface AuthState {
@@ -53,4 +54,8 @@ const authSlice = createSlice({
 });
 
 export const { setCredentials, setUser, logout } = authSlice.actions;
+
+export const selectUser = (state: { auth: AuthState }) => state.auth.user;
+export const selectIsAuthenticated = (state: { auth: AuthState }) => state.auth.isAuthenticated;
+
 export default authSlice.reducer;

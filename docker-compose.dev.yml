@@ -1,5 +1,4 @@
 # docker-compose.dev.yml — 仅启动依赖服务，应用在 IDE 中运行
-version: '3.8'
 
 services:
   postgres:
@@ -9,11 +8,14 @@ services:
       POSTGRES_DB: qt_platform
       POSTGRES_USER: qt_user
       POSTGRES_PASSWORD: qt_dev_password
+      POSTGRES_HOST_AUTH_METHOD: trust
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
       - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./sql/pg_hba.conf:/var/lib/postgresql/pg_hba.conf:ro
+    command: ["postgres", "-c", "hba_file=/var/lib/postgresql/pg_hba.conf"]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U qt_user"]
       interval: 10s
