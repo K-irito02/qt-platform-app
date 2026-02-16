@@ -1,20 +1,44 @@
-import React, { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
+import { Spin } from 'antd';
 import { AdminSidebar } from '@/components/layout/AdminSidebar';
 import { Header } from '@/components/layout/Header';
 import { useAppSelector } from '@/store/hooks';
 
 export default function AdminLayout() {
   const navigate = useNavigate();
-  const { user } = useAppSelector((state) => state.auth);
+  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    // Check admin role
-    const isAdmin = user?.roles?.some((r: string) => ['ADMIN', 'SUPER_ADMIN'].includes(r));
+    // Wait for user data to load before checking roles
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    
+    // If authenticated but user not loaded yet, wait
+    if (!user) {
+      return;
+    }
+    
+    // User loaded, check admin role
+    const isAdmin = user.roles?.some((r: string) => ['ADMIN', 'SUPER_ADMIN'].includes(r));
     if (!isAdmin) {
       navigate('/');
+    } else {
+      setChecking(false);
     }
-  }, [user, navigate]);
+  }, [user, isAuthenticated, navigate]);
+
+  // Show loading while checking permissions
+  if (checking) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Spin size="large" tip="验证权限中..." />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen w-full relative bg-slate-900/10 transition-colors duration-500">
