@@ -270,6 +270,16 @@ const mockRoutes: Array<{ method: string; pattern: RegExp; handler: MockHandler 
       return ok({ ...user, ...d });
     },
   },
+  {
+    method: 'get', pattern: /\/users\/me\/theme$/, handler: (cfg) => {
+      const token = cfg.headers?.Authorization?.toString() || '';
+      const match = token.match(/mock-token-(\d+)-/);
+      const userId = match ? Number(match[1]) : 1;
+      const user = mockUsers.find(u => u.id === userId) || mockUsers[0];
+      return ok({ themeConfig: user.themeConfig || null });
+    },
+  },
+  { method: 'put', pattern: /\/users\/me\/theme$/, handler: () => ok(null) },
 
   // Products
   {
@@ -362,6 +372,17 @@ const mockRoutes: Array<{ method: string; pattern: RegExp; handler: MockHandler 
   { method: 'get', pattern: /\/admin\/system\/configs/, handler: () => ok(mockSystemConfigs) },
   { method: 'put', pattern: /\/admin\/system\/configs\//, handler: () => ok(null) },
   { method: 'get', pattern: /\/admin\/audit-logs/, handler: () => page(mockAuditLogs, mockAuditLogs.length) },
+  { method: 'get', pattern: /\/admin\/system\/theme/, handler: () => {
+    const saved = localStorage.getItem('systemThemeConfig');
+    if (saved) return ok({ themeConfig: saved });
+    return ok({ themeConfig: null });
+  }},
+  { method: 'put', pattern: /\/admin\/system\/theme/, handler: (cfg) => {
+    // cfg.data 已经是 JSON 字符串，直接保存
+    const body = typeof cfg.data === 'string' ? cfg.data : JSON.stringify(cfg.data);
+    localStorage.setItem('systemThemeConfig', body);
+    return ok(null);
+  }},
 
   // File upload
   { method: 'post', pattern: /\/files\/upload/, handler: () => ok({ id: 1, url: '/mock/uploaded-file.png', path: '/uploads/mock.png' }) },

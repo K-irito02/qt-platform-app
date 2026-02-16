@@ -1,6 +1,6 @@
 # Qt 产品发布平台
 
-> Qt 软件产品发布与分发平台 — 中式水墨风格 UI + 中英文双语支持
+> Qt 软件产品发布与分发平台 — 现代玻璃拟态风格 (Glassmorphism) + 极简主义设计 + 中英文双语支持
 
 ---
 
@@ -13,7 +13,8 @@
 | React | 18.3 | UI 框架 |
 | TypeScript | ~5.6 | 类型安全 |
 | Vite | 5.4 | 构建工具 + HMR |
-| Ant Design | 6.x | UI 组件库（水墨主题定制） |
+| Tailwind CSS | 3.x | 实用优先 CSS 框架 |
+| Ant Design | 6.x | UI 组件库（配合 Glassmorphism） |
 | Redux Toolkit | 2.x | 状态管理 |
 | React Router | 7.x | 路由（懒加载） |
 | react-i18next | 16.x | 国际化（中/英） |
@@ -42,7 +43,7 @@
 
 ---
 
-## 快速开始
+## 快速开始（本地运行）
 
 ### 1. 环境要求
 
@@ -61,52 +62,73 @@ git clone https://github.com/K-irito02/qt-platform-app.git
 cd qt-platform
 ```
 
-### 3. 启动依赖服务
+### 3. 启动 Docker 依赖服务
 
 ```bash
+# 确保 Docker Desktop 已启动
 docker compose -f docker-compose.dev.yml up -d
-# 启动 PostgreSQL 15 (端口 5433) + Redis 7 (端口 6379)
-# 自动执行 sql/init.sql 建表 + 初始化数据
 ```
 
-> **注**: PostgreSQL 映射到宿主机端口 **5433**（非默认 5432），避免与本地 PostgreSQL 安装冲突
+这会启动以下服务：
 
-### 4. 启动后端
+| 服务 | 容器名 | 宿主机端口 | 容器端口 | 用户名 | 密码 |
+|------|---------|------------|----------|--------|------|
+| PostgreSQL 15 | qt-dev-postgres | **5433** | 5432 | qt_user | 3143285505 |
+| Redis 7 | qt-dev-redis | **6380** | 6379 | 无 | 3143285505 |
+
+> **重要**: PostgreSQL 端口为 **5433**（非默认 5432），Redis 端口为 **6380**（非默认 6379），避免与本地已安装的 PostgreSQL/Redis 冲突。
+
+验证服务是否正常启动：
 
 ```bash
-# 方式一：Maven 直接运行
+docker compose -f docker-compose.dev.yml ps
+# 应看到两个服务状态为 healthy
+```
+
+PostgreSQL 启动时会自动执行 `sql/init.sql` 建表和初始化管理员账号。
+
+### 4. 导入种子数据（可选，推荐）
+
+```powershell
+# Windows PowerShell:
+Get-Content sql/seed.sql | docker exec -i qt-dev-postgres psql -U qt_user -d qt_platform
+```
+
+```bash
+# Linux / macOS:
+docker exec -i qt-dev-postgres psql -U qt_user -d qt_platform < sql/seed.sql
+```
+
+导入内容：5 个测试用户 + 6 个分类 + 8 个产品 + 版本 + 评论。
+
+### 5. 启动后端
+
+```powershell
+# 方式一：Maven 直接运行（开发时推荐，支持热重载）
 mvn spring-boot:run -pl qt-platform-app "-Dspring-boot.run.profiles=dev"
 
 # 方式二：打包后运行
 mvn clean package -DskipTests
 java -jar qt-platform-app/target/qt-platform-app-1.0.0-SNAPSHOT.jar --spring.profiles.active=dev
-
-# API 地址: http://localhost:8081
-# Swagger UI: http://localhost:8081/swagger-ui.html
 ```
 
-> **注**: 端口为 8081（非默认 8080），因本机 Apache httpd 占用 8080
+启动成功后可访问：
+- **API 地址**: http://localhost:8081
+- **Swagger UI**: http://localhost:8081/swagger-ui.html
 
-### 5. 启动前端
+> **注**: 后端端口为 **8081**（非默认 8080），因本机 Apache httpd 占用 8080。
 
-```bash
-cd qt-platform
+### 6. 启动前端
+
+```powershell
 cd qt-platform-web
-npm install
+npm install   # 首次运行时执行
 npm run dev
-# 访问: http://localhost:5173
-# Vite 已配置代理 /api → http://localhost:8081
 ```
 
-### 6. 导入种子数据（可选）
-
-```bash
-# 在 PostgreSQL 中执行种子数据（5 用户 + 6 分类 + 8 产品 + 版本 + 评论）
-# Windows PowerShell:
-Get-Content sql/seed.sql | docker exec -i qt-dev-postgres psql -U qt_user -d qt_platform
-# Linux / macOS:
-docker exec -i qt-dev-postgres psql -U qt_user -d qt_platform < sql/seed.sql
-```
+启动成功后可访问：
+- **前端地址**: http://localhost:5173
+- Vite 已配置代理 `/api` → `http://localhost:8081`
 
 ### 7. 禁用 Mock 数据（可选）
 
@@ -160,25 +182,57 @@ qt-platform/
 
 ## 端口配置
 
-| 服务 | 端口 | 说明 |
-|------|------|------|
-| 后端 API | 8081 | Spring Boot（非默认 8080，因本机 httpd 占用）|
-| 前端开发 | 5173 | Vite 开发服务器 |
-| PostgreSQL | 5433 | Docker 容器（非默认 5432，避免本地 PG 冲突）|
-| Redis | 6379 | Docker 容器 |
+| 服务 | 宿主机端口 | 说明 |
+|------|------------|------|
+| 后端 API | **8081** | Spring Boot（非默认 8080，因本机 httpd 占用）|
+| 前端开发 | **5173** | Vite 开发服务器 |
+| PostgreSQL | **5433** | Docker 容器（非默认 5432，避免本地 PG 冲突）|
+| Redis | **6380** | Docker 容器（非默认 6379，避免本地 Redis 冲突）|
 
 ---
 
-## 默认账号
+## 服务密码一览
 
-| 角色 | 邮箱 | 密码 | 说明 |
+| 服务 | 用户名 | 密码 | 数据库 |
+|------|--------|------|--------|
+| PostgreSQL | qt_user | **3143285505** | qt_platform |
+| Redis | 无 | **3143285505** | — |
+
+---
+
+## 平台登录账号
+
+| 角色 | 邮箱 | 密码 | 来源 |
 |------|------|------|------|
-| 超级管理员 | admin@qtplatform.com | Admin@123456 | init.sql 创建 |
-| 测试用户 | zhangsan@example.com | Test@123456 | seed.sql 创建 |
-| 测试用户 | lisi@example.com | Test@123456 | seed.sql 创建 |
-| 测试用户 | wangwu@example.com | Test@123456 | seed.sql 创建 |
-| 测试开发者 | chen@example.com | Test@123456 | seed.sql 创建 |
-| 封禁用户 | banned@example.com | Test@123456 | seed.sql 创建（状态: BANNED）|
+| 超级管理员 | admin@qtplatform.com | Admin@123456 | init.sql 自动创建 |
+| 测试用户 | zhangsan@example.com | Test@123456 | seed.sql 手动导入 |
+| 测试用户 | lisi@example.com | Test@123456 | seed.sql 手动导入 |
+| 测试用户 | wangwu@example.com | Test@123456 | seed.sql 手动导入 |
+| 测试开发者 | chen@example.com | Test@123456 | seed.sql 手动导入 |
+| 封禁用户 | banned@example.com | Test@123456 | seed.sql（状态: BANNED）|
+
+---
+
+## 常见问题
+
+### 端口冲突
+
+本项目的 Docker 服务端口故意避开默认端口，以避免与本地已安装的 PostgreSQL、Redis、Apache httpd 冲突：
+- PostgreSQL: 5432 → **5433**
+- Redis: 6379 → **6380**
+- 后端: 8080 → **8081**
+
+如果你的本地没有这些服务冲突，可以在 `docker-compose.dev.yml` 和 `application.yml` 中改回默认端口。
+
+### 重置数据库
+
+```powershell
+# 停止并删除数据卷，然后重新创建
+docker compose -f docker-compose.dev.yml down -v
+docker compose -f docker-compose.dev.yml up -d
+# 等待 PostgreSQL healthy 后重新导入种子数据
+Get-Content sql/seed.sql | docker exec -i qt-dev-postgres psql -U qt_user -d qt_platform
+```
 
 ---
 
@@ -198,7 +252,7 @@ qt-platform/
 ### 前端（Step 8-9）
 
 - [x] **基础架构**: Vite + React + TypeScript + Redux Toolkit + React Router (懒加载) + i18n
-- [x] **水墨主题**: CSS 变量（墨色五阶 + 宣纸色 + 点缀色）、Ant Design Token 全覆盖、动态主题系统
+- [x] **玻璃拟态主题**: Tailwind CSS + CSS 变量实现的高级玻璃拟态效果（背景模糊、半透明、光影）、动态背景支持（图片/视频）
 - [x] **前台页面（9 个）**: Home、Products、ProductDetail、Login、Register、ForgotPassword、Profile、OAuthCallback、NotFound
 - [x] **后台页面（6 个）**: Dashboard、Users、Products、Comments、Categories、System
 - [x] **API 层**: Axios 封装（token 注入 + 401 刷新）、9 个 API 模块、Mock 数据拦截器
@@ -265,10 +319,10 @@ qt-platform/
 |------|------|------|
 | 架构文档 | `Planning Document/Architecture Document.md` | 完整技术架构设计 |
 | 阶段一设计 | `Planning Document/Phase One.md` | MVP 详细设计文档 |
-| 水墨画设计 | `Planning Document/水墨画设计.md` | UI 设计规范 |
+| 设计系统 | `src/design-system/MASTER.md` | Glassmorphism 设计规范 |
 | 项目记忆 | `Memory/` | AI 辅助开发记忆系统 |
 | 代码规范 | `.windsurf/rules/` | 前后端代码规范 |
-| 前端测试素材 | `Front-end testing/` | 水墨背景图片/视频 |
+| 前端测试素材 | `Front-end testing/` | 背景图片/视频 |
 
 ---
 

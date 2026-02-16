@@ -1,32 +1,24 @@
 import React from 'react';
 import { useAppSelector } from '../../store/hooks';
-import styles from './DynamicBackground.module.css';
 
 export const DynamicBackground: React.FC = () => {
   const theme = useAppSelector((state) => state.theme.currentTheme);
   const { background } = theme;
 
+  if (background.type !== 'video') return null;
+
   return (
-    <div className={styles.backgroundContainer}>
-      {background.type === 'video' && (
-        <video 
-          className={styles.videoBg} 
-          src={background.url} 
-          autoPlay 
-          loop 
-          muted 
-          playsInline
-        />
-      )}
-      {background.type === 'image' && (
-        <div 
-          className={styles.imageBg} 
-          style={{ backgroundImage: `url(${background.url})` }} 
-        />
-      )}
-      {background.overlay && (
-          <div className={styles.overlay} style={{ backgroundImage: background.overlay }} />
-      )}
+    <div className="fixed inset-0 -z-50 overflow-hidden w-full h-full">
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute top-1/2 left-1/2 min-w-full min-h-full w-auto h-auto -translate-x-1/2 -translate-y-1/2 object-cover"
+        src={background.url}
+      />
+      {/* Optional Overlay if needed for contrast */}
+      <div className="absolute inset-0 bg-black/20" />
     </div>
   );
 };

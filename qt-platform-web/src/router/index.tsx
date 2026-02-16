@@ -5,7 +5,7 @@ import MainLayout from '@/layouts/MainLayout';
 import AdminLayout from '@/layouts/AdminLayout';
 
 const LazyLoad = (Component: React.LazyExoticComponent<ComponentType<unknown>>) => (
-  <Suspense fallback={<Spin size="large" style={{ display: 'flex', justifyContent: 'center', marginTop: '30vh' }} />}>
+  <Suspense fallback={<Spin size="large" className="flex justify-center mt-[30vh]" />}>
     <Component />
   </Suspense>
 );
@@ -31,6 +31,21 @@ const AdminTheme = lazy(() => import('@/pages/Admin/Theme'));
 const AdminSystem = lazy(() => import('@/pages/Admin/System'));
 
 const router = createBrowserRouter([
+  // Auth Routes (No Sidebar/Header, just Background)
+  {
+    path: '/login',
+    element: LazyLoad(Login),
+  },
+  {
+    path: '/register',
+    element: LazyLoad(Register),
+  },
+  {
+    path: '/forgot-password',
+    element: LazyLoad(ForgotPassword),
+  },
+  
+  // Main App Routes
   {
     path: '/',
     element: <MainLayout />,
@@ -38,15 +53,12 @@ const router = createBrowserRouter([
       { index: true, element: LazyLoad(Home) },
       { path: 'products', element: LazyLoad(Products) },
       { path: 'products/:slug', element: LazyLoad(ProductDetail) },
-      { path: 'login', element: LazyLoad(Login) },
-      { path: 'register', element: LazyLoad(Register) },
-      { path: 'forgot-password', element: LazyLoad(ForgotPassword) },
       { path: 'profile', element: LazyLoad(Profile) },
       { path: 'oauth/github/callback', element: LazyLoad(OAuthCallback) },
-      { path: '404', element: LazyLoad(NotFound) },
-      { path: '*', element: <Navigate to="/404" replace /> },
     ],
   },
+
+  // Admin Routes
   {
     path: '/admin',
     element: <AdminLayout />,
@@ -60,6 +72,10 @@ const router = createBrowserRouter([
       { path: 'system', element: LazyLoad(AdminSystem) },
     ],
   },
+
+  // Fallback
+  { path: '404', element: LazyLoad(NotFound) },
+  { path: '*', element: <Navigate to="/404" replace /> },
 ]);
 
 export default router;

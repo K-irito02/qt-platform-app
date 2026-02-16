@@ -1,16 +1,57 @@
-import { useState, useEffect } from 'react';
-import { Form, Input, Button, Radio, Slider, Upload, message, Card } from 'antd';
+import { useState, useEffect, useMemo } from 'react';
+import { Form, Input, Button, Radio, Slider, Upload, message, Card, Select, ColorPicker, Space } from 'antd';
 import { UploadOutlined, SaveOutlined, ReloadOutlined } from '@ant-design/icons';
-import { adminApi, fileApi } from '@/utils/api';
+import { adminApi } from '@/utils/api';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { setSystemConfig } from '@/store/slices/themeSlice';
+import type { Color } from 'antd/es/color-picker';
+
+// 预设字体选项 — 所有字体已在 index.css 中通过 Google Fonts / CDN 加载
+const FONT_OPTIONS = [
+  { label: '马善政楷书', value: '"Ma Shan Zheng", cursive' },
+  { label: '思源宋体', value: '"Noto Serif SC", serif' },
+  { label: '霞鹜文楷', value: '"LXGW WenKai", cursive' },
+  { label: '站酷仓耳渔阳体', value: '"ZCOOL XiaoWei", serif' },
+  { label: '行书', value: '"Zhi Mang Xing", cursive' },
+  { label: '草书', value: '"Liu Jian Mao Cao", cursive' },
+  { label: '龙藏体', value: '"Long Cang", cursive' },
+  { label: '系统默认', value: 'system-ui, sans-serif' },
+];
+
+// 预设笔画宽度选项
+const STROKE_WIDTH_OPTIONS = [
+  { label: '细 (1px)', value: '1px' },
+  { label: '标准 (2px)', value: '2px' },
+  { label: '粗 (3px)', value: '3px' },
+  { label: '特粗 (4px)', value: '4px' },
+];
 
 export default function AdminTheme() {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [customFont, setCustomFont] = useState(false);
+  const [customStrokeWidth, setCustomStrokeWidth] = useState(false);
   const dispatch = useAppDispatch();
   const currentTheme = useAppSelector((s) => s.theme.currentTheme);
+
+  // 实时表单值用于预览
+  const watchPrimaryColor = Form.useWatch('primaryColor', form);
+  const watchStrokeWidth = Form.useWatch('strokeWidth', form);
+  const watchStrokeWidthCustom = Form.useWatch('strokeWidthCustom', form);
+  const watchFontFamily = Form.useWatch('fontFamily', form);
+  const watchFontFamilyCustom = Form.useWatch('fontFamilyCustom', form);
+  const watchBgUrl = Form.useWatch('backgroundUrl', form);
+  const watchBgType = Form.useWatch('backgroundType', form);
+  const watchBgOpacity = Form.useWatch('backgroundOpacity', form);
+
+  // 计算预览用的实际值
+  const previewStrokeWidth = useMemo(() => {
+    return watchStrokeWidth === 'custom' ? (watchStrokeWidthCustom || '2px') : (watchStrokeWidth || '2px');
+  }, [watchStrokeWidth, watchStrokeWidthCustom]);
+  const previewFontFamily = useMemo(() => {
+    return watchFontFamily === 'custom' ? (watchFontFamilyCustom || 'serif') : (watchFontFamily || 'serif');
+  }, [watchFontFamily, watchFontFamilyCustom]);
 
   useEffect(() => {
     loadThemeConfig();
@@ -20,35 +61,53 @@ export default function AdminTheme() {
     setLoading(true);
     try {
       const res: any = await adminApi.getGlobalTheme();
-      if (res.data.themeConfig) {
-        const config = JSON.parse(res.data.themeConfig);
+      if (res.data && res.data.themeConfig) {
+        let config = res.data.themeConfig;
+        while (typeof config === 'string') {
+          try { config = JSON.parse(config); } catch { break; }
+        }
+        if (config && config.themeConfig) {
+          config = config.themeConfig;
+          while (typeof config === 'string') {
+            try { config = JSON.parse(config); } catch { break; }
+          }
+        }
+        
+        const strokeWidth = config.ink?.strokeWidth || '2px';
+        const fontFamily = config.ink?.fontFamily || '"Ma Shan Zheng", cursive';
+        const isPresetStroke = STROKE_WIDTH_OPTIONS.some(o => o.value === strokeWidth);
+        const isPresetFont = FONT_OPTIONS.some(o => o.value === fontFamily);
+        
+        setCustomStrokeWidth(!isPresetStroke);
+        setCustomFont(!isPresetFont);
+        
         form.setFieldsValue({
           backgroundType: config.background?.type || 'image',
           backgroundUrl: config.background?.url || '',
-          backgroundOpacity: config.background?.opacity || 0.1,
+          backgroundOpacity: config.background?.opacity ?? 0.1,
           primaryColor: config.ink?.primaryColor || '#8B0000',
-          strokeWidth: config.ink?.strokeWidth || '2px',
-          fontFamily: config.ink?.fontFamily || '"Ma Shan Zheng", cursive',
+          strokeWidth: isPresetStroke ? strokeWidth : 'custom',
+          strokeWidthCustom: isPresetStroke ? '' : strokeWidth,
+          fontFamily: isPresetFont ? fontFamily : 'custom',
+          fontFamilyCustom: isPresetFont ? '' : fontFamily,
         });
       }
-    } catch {
-      message.error('加载主题配置失败');
+    } catch (e) {
+      console.error('加载主题配置失败', e);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleFileUpload = async (file: File) => {
+  const handleFileUpload = (file: File) => {
     setUploading(true);
     try {
-      const res: any = await fileApi.upload(file, 'theme');
-      const url = res.data.url;
-      form.setFieldValue('backgroundUrl', url);
-      message.success('文件上传成功');
-      return url;
+      // 使用 createObjectURL 创建真实可预览的 blob URL
+      const blobUrl = URL.createObjectURL(file);
+      form.setFieldValue('backgroundUrl', blobUrl);
+      message.success(`文件 "${file.name}" 已加载`);
     } catch {
-      message.error('文件上传失败');
-      return '';
+      message.error('文件加载失败');
     } finally {
       setUploading(false);
     }
@@ -57,6 +116,13 @@ export default function AdminTheme() {
   const onSave = async (values: any) => {
     setLoading(true);
     try {
+      const strokeWidth = values.strokeWidth === 'custom' 
+        ? values.strokeWidthCustom || '2px' 
+        : values.strokeWidth;
+      const fontFamily = values.fontFamily === 'custom' 
+        ? values.fontFamilyCustom || '"Ma Shan Zheng", cursive' 
+        : values.fontFamily;
+      
       const themeConfig = {
         background: {
           type: values.backgroundType,
@@ -66,8 +132,8 @@ export default function AdminTheme() {
         },
         ink: {
           primaryColor: values.primaryColor,
-          strokeWidth: values.strokeWidth,
-          fontFamily: values.fontFamily,
+          strokeWidth,
+          fontFamily,
         },
       };
       await adminApi.updateGlobalTheme(JSON.stringify(themeConfig));
@@ -104,9 +170,11 @@ export default function AdminTheme() {
             </Radio.Group>
           </Form.Item>
 
-          <Form.Item label="背景文件" name="backgroundUrl">
-            <Input.Group compact>
-              <Input style={{ width: 'calc(100% - 100px)' }} placeholder="背景文件URL" />
+          <Form.Item label="背景文件">
+            <Space.Compact style={{ width: '100%' }}>
+              <Form.Item name="backgroundUrl" noStyle>
+                <Input style={{ width: 'calc(100% - 100px)' }} placeholder="背景文件URL 或上传文件" />
+              </Form.Item>
               <Upload
                 showUploadList={false}
                 beforeUpload={(file) => {
@@ -117,7 +185,17 @@ export default function AdminTheme() {
               >
                 <Button icon={<UploadOutlined />} loading={uploading}>上传</Button>
               </Upload>
-            </Input.Group>
+            </Space.Compact>
+            {/* 背景预览 */}
+            {watchBgUrl && (
+              <div style={{ marginTop: 8, borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--ink-lightest)', maxHeight: 200 }}>
+                {watchBgType === 'video' ? (
+                  <video src={watchBgUrl} autoPlay loop muted playsInline style={{ width: '100%', maxHeight: 200, objectFit: 'cover', opacity: watchBgOpacity ?? 0.5 }} />
+                ) : (
+                  <div style={{ width: '100%', height: 150, backgroundImage: `url(${watchBgUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: watchBgOpacity ?? 0.5 }} />
+                )}
+              </div>
+            )}
           </Form.Item>
 
           <Form.Item label="背景透明度" name="backgroundOpacity" initialValue={0.1}>
@@ -128,16 +206,72 @@ export default function AdminTheme() {
             水墨风格设置
           </h3>
 
-          <Form.Item label="主色调" name="primaryColor" initialValue="#8B0000">
-            <Input type="color" style={{ width: 120 }} />
+          <Form.Item label="主色调" name="primaryColor" initialValue="#8B0000"
+            getValueFromEvent={(color: Color) => (typeof color === 'string' ? color : color.toHexString())}
+          >
+            <ColorPicker showText format="hex" />
+          </Form.Item>
+          {/* 主色调预览条 */}
+          <div style={{ marginTop: -16, marginBottom: 24 }}>
+            <div style={{ height: 6, borderRadius: 3, background: watchPrimaryColor || '#8B0000', boxShadow: `0 0 8px ${watchPrimaryColor || '#8B0000'}44` }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
+              <span style={{ fontSize: 12, color: watchPrimaryColor || '#8B0000', fontWeight: 600 }}>当前主色调: {watchPrimaryColor || '#8B0000'}</span>
+              <span style={{ fontSize: 12, color: 'var(--ink-light)' }}>印章、链接、按钮等使用此颜色</span>
+            </div>
+          </div>
+
+          <Form.Item label="笔画宽度">
+            <Space>
+              <Form.Item name="strokeWidth" initialValue="2px" noStyle>
+                <Select
+                  style={{ width: 150 }}
+                  options={[
+                    ...STROKE_WIDTH_OPTIONS,
+                    { label: '自定义...', value: 'custom' },
+                  ]}
+                  onChange={(v) => setCustomStrokeWidth(v === 'custom')}
+                />
+              </Form.Item>
+              {customStrokeWidth && (
+                <Form.Item name="strokeWidthCustom" noStyle>
+                  <Input placeholder="如: 5px" style={{ width: 100 }} />
+                </Form.Item>
+              )}
+            </Space>
+            {/* 笔画宽度预览 */}
+            <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ flex: 1, height: previewStrokeWidth, background: 'var(--ink-dark)', borderRadius: 2, transition: 'height 0.3s' }} />
+              <span style={{ fontSize: 12, color: 'var(--ink-light)', whiteSpace: 'nowrap' }}>预览: {previewStrokeWidth}</span>
+            </div>
           </Form.Item>
 
-          <Form.Item label="笔画宽度" name="strokeWidth" initialValue="2px">
-            <Input placeholder="例如: 2px" style={{ width: 200 }} />
-          </Form.Item>
-
-          <Form.Item label="字体" name="fontFamily" initialValue='"Ma Shan Zheng", cursive'>
-            <Input placeholder='例如: "Ma Shan Zheng", cursive' />
+          <Form.Item label="字体">
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <Form.Item name="fontFamily" initialValue='"Ma Shan Zheng", cursive' noStyle>
+                <Select
+                  style={{ width: '100%' }}
+                  options={[
+                    ...FONT_OPTIONS,
+                    { label: '自定义...', value: 'custom' },
+                  ]}
+                  onChange={(v) => setCustomFont(v === 'custom')}
+                />
+              </Form.Item>
+              {customFont && (
+                <Form.Item name="fontFamilyCustom" noStyle>
+                  <Input placeholder='如: "Noto Sans SC", sans-serif' />
+                </Form.Item>
+              )}
+            </Space>
+            {/* 字体预览 */}
+            <div style={{ marginTop: 8, padding: '12px 16px', background: 'var(--paper-warm)', borderRadius: 'var(--radius-md)', border: '1px solid var(--ink-lightest)' }}>
+              <div style={{ fontFamily: previewFontFamily, fontSize: 20, color: 'var(--ink-darkest)', lineHeight: 1.6 }}>
+                墨韵悠然·水墨丹青
+              </div>
+              <div style={{ fontFamily: previewFontFamily, fontSize: 14, color: 'var(--ink-medium)', marginTop: 4 }}>
+                Qt 产品发布平台 — 一站式软件分发服务 (Preview Font)
+              </div>
+            </div>
           </Form.Item>
 
           <Form.Item>

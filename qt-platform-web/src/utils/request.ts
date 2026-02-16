@@ -43,9 +43,12 @@ request.interceptors.response.use(
       const { status, data } = error.response;
       switch (status) {
         case 401:
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-          window.location.href = '/login';
+          // Prevent infinite loop if already on login page
+          if (!window.location.pathname.endsWith('/login')) {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            window.location.href = '/login';
+          }
           break;
         case 403:
           message.error('权限不足');

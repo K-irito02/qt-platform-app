@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { RouterProvider } from 'react-router-dom'
-import { ConfigProvider } from 'antd'
+import { ConfigProvider, App as AntdApp } from 'antd'
 import zhCN from 'antd/locale/zh_CN'
 import router from '@/router'
 import theme from '@/theme/antdTheme'
@@ -26,10 +26,12 @@ function App() {
 
   return (
     <ConfigProvider locale={zhCN} theme={theme}>
-      <ThemeProvider>
-        <DynamicBackground />
-        <RouterProvider router={router} />
-      </ThemeProvider>
+      <AntdApp>
+        <ThemeProvider>
+          <DynamicBackground />
+          <RouterProvider router={router} />
+        </ThemeProvider>
+      </AntdApp>
     </ConfigProvider>
   )
 }

@@ -7,15 +7,12 @@ services:
     environment:
       POSTGRES_DB: qt_platform
       POSTGRES_USER: qt_user
-      POSTGRES_PASSWORD: qt_dev_password
-      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_PASSWORD: "3143285505"
     ports:
       - "5433:5432"
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
       - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-      - ./sql/pg_hba.conf:/var/lib/postgresql/pg_hba.conf:ro
-    command: ["postgres", "-c", "hba_file=/var/lib/postgresql/pg_hba.conf"]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U qt_user"]
       interval: 10s
@@ -25,13 +22,13 @@ services:
   redis:
     image: redis:7-alpine
     container_name: qt-dev-redis
-    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru --requirepass "3143285505"
     ports:
-      - "6379:6379"
+      - "6380:6379"
     volumes:
       - redis_dev_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "3143285505", "ping"]
       interval: 10s
       timeout: 5s
       retries: 3

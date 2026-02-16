@@ -5,7 +5,6 @@ import { store } from '@/store'
 import '@/locales'
 import App from './App.tsx'
 import './index.css'
-import './styles/ink-effects.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
